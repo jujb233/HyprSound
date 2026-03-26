@@ -1,3 +1,4 @@
+using HyprSound.Type;
 using HyprSound.Util;
 
 namespace HyprSound;
@@ -5,6 +6,8 @@ namespace HyprSound;
 public class HyprlandEventMonitor : IDisposable {
     private StreamReader? _reader;
     private readonly CancellationTokenSource _cts = new();
+    
+    public event Action<IHyprlandEvent>? HyprEvent; 
 
     public async Task StartMonitor(CancellationToken externalToken = default) {
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(externalToken, _cts.Token);
@@ -20,8 +23,9 @@ public class HyprlandEventMonitor : IDisposable {
                 }
 
                 try {
-                    var evt = line.AnalysisToHyprlandEvent();
-                    Console.WriteLine(evt.ToString());
+                    var hyprEvent = line.AnalysisToHyprlandEvent();
+                    HyprEvent?.Invoke(hyprEvent);
+                    Console.WriteLine(hyprEvent.ToString());
                 }
                 catch (Exception ex) {
                     Console.WriteLine($"解析事件失败: {ex.Message}");
