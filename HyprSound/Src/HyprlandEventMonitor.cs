@@ -25,7 +25,7 @@ public class HyprlandEventMonitor : IDisposable {
                 try {
                     var hyprEvent = line.ResolveHyprlandEvent();
                     HyprEvent?.Invoke(hyprEvent);
-                    Console.WriteLine($"解析成功: '{line}' -> '{hyprEvent}'");
+                    Console.WriteLine($"解析成功: '{line}' -> '{hyprEvent.EventName}'");
                 }
                 catch (Exception ex) {
                     Console.WriteLine($"解析事件失败: {ex.Message}");

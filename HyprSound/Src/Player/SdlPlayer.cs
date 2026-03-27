@@ -1,4 +1,3 @@
-using HyprSound.Map;
 using HyprSound.Type;
 using SDL3;
 
@@ -20,6 +19,7 @@ public class SdlPlayer : IPlayer, IDisposable {
         var path = _soundMappingResolve.GetResolvePath(eventType);
 
         if (path is null or "" || !File.Exists(path)) {
+            Console.WriteLine($"{path} 不存在");
             return;
         }
 
@@ -48,7 +48,7 @@ public class SdlPlayer : IPlayer, IDisposable {
         }
 
         _currentStream = stream;
-        Console.WriteLine($"Playing: {path}");
+        Console.WriteLine($"正在播放: {path}");
     }
 
     public void Dispose() {

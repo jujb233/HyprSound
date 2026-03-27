@@ -4,12 +4,27 @@ using HyprSound.Player;
 using HyprSound.Type;
 using Microsoft.Extensions.DependencyInjection;
 
-var assetPath = Path.Combine(AppContext.BaseDirectory, "..", "Asset");
-var mappingConfigPath = Path.Combine(assetPath, "sound-mapping.json");
+if (args.Length < 2) {
+    Console.WriteLine("错误：必须提供 Asset 目录路径和音效库名两个参数.\n用法 path/to/exe AssetPath SoundLibrary");
+    return;
+}
+
+var assetPath = args[0];
+var soundLibrary = args[1];
+
+if (!Directory.Exists(assetPath)) {
+    Console.WriteLine($"错误：Asset 目录不存在: {assetPath}");
+    return;
+}
+
+if (soundLibrary is null or "" or " ") {
+    Console.WriteLine("错误：未指定子目录(音效库)名");
+    return;
+}
 
 var serviceProvider = new ServiceCollection()
-    .AddSingleton<ISoundMappingResolve>(_ => new JsonMappingResolve(mappingConfigPath, assetPath))
-    .AddSingleton<IPlayer, SdlPlayer>()
+    .AddSingleton<ISoundMappingResolve>(_ => new JsonMappingResolve(assetPath, soundLibrary))
+    .AddSingleton<IPlayer>(sp => new SdlPlayer(sp.GetRequiredService<ISoundMappingResolve>()))
     .AddSingleton<HyprlandEventMonitor>()
     .BuildServiceProvider();
 

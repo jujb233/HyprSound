@@ -1,6 +1,4 @@
-using HyprSound.Type;
-
-namespace HyprSound.Map;
+namespace HyprSound.Type;
 
 public interface ISoundMappingResolve {
     string? GetResolvePath(IEventType eventType);
