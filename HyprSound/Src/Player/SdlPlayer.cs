@@ -1,15 +1,18 @@
 using HyprSound.Type;
+using Microsoft.Extensions.Logging;
 using SDL3;
 
 namespace HyprSound.Player;
 
 public class SdlPlayer : IPlayer, IDisposable {
     private readonly ISoundMappingResolve _soundMappingResolve;
+    private readonly ILogger<SdlPlayer> _logger;
     private IntPtr _currentStream = IntPtr.Zero;
     private bool _disposed;
 
-    public SdlPlayer(ISoundMappingResolve soundMappingResolve) {
+    public SdlPlayer(ISoundMappingResolve soundMappingResolve, ILogger<SdlPlayer> logger) {
         _soundMappingResolve = soundMappingResolve;
+        _logger = logger;
         if (!SDL.Init(SDL.InitFlags.Audio)) {
             throw new InvalidOperationException($"SDL 初始化失败: {SDL.GetError()}");
         }
@@ -19,7 +22,7 @@ public class SdlPlayer : IPlayer, IDisposable {
         var path = _soundMappingResolve.GetResolvePath(eventType);
 
         if (path is null or "" || !File.Exists(path)) {
-            Console.WriteLine($"{path} 不存在");
+            _logger.LogError("音频文件: {Path} 不存在", path);
             return;
         }
 
@@ -29,7 +32,7 @@ public class SdlPlayer : IPlayer, IDisposable {
         }
 
         if (!SDL.LoadWAV(path, out var spec, out var wavData, out var wavLength)) {
-            Console.WriteLine($"加载 WAV 失败: {SDL.GetError()}");
+            _logger.LogError("加载 WAV 失败: {GetError}", SDL.GetError());
             return;
         }
 
@@ -42,13 +45,15 @@ public class SdlPlayer : IPlayer, IDisposable {
         SDL.PutAudioStreamData(stream, wavData, (int)wavLength);
         SDL.FreeWAV(wavData);
         if (!SDL.ResumeAudioStreamDevice(stream)) {
-            Console.WriteLine($"无法恢复音频流: {SDL.GetError()}");
+            _logger.LogError("无法恢复音频流: {GetError}", SDL.GetError());
             SDL.DestroyAudioStream(stream);
             return;
         }
 
         _currentStream = stream;
-        Console.WriteLine($"正在播放: {path}");
+        
+        if (_logger.IsEnabled(LogLevel.Debug))
+            _logger.LogDebug("正在播放: {Path}", path);
     }
 
     public void Dispose() {

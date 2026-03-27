@@ -1,14 +1,18 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using HyprSound.Type;
+using Microsoft.Extensions.Logging;
 
 namespace HyprSound.Map;
 
 public class JsonMappingResolve : ISoundMappingResolve {
+    private readonly ILogger<JsonMappingResolve> _logger;
     private readonly Dictionary<string, string?> _mapping;
     private readonly string _pathToLibrary;
 
-    public JsonMappingResolve(string pathToAsset, string libraryName) {
-        _pathToLibrary = Path.Combine(pathToAsset,libraryName);
+    public JsonMappingResolve(string pathToAsset, string libraryName, ILogger<JsonMappingResolve> logger) {
+        _logger = logger;
+        _pathToLibrary = Path.Combine(pathToAsset, libraryName);
 
         var pathToJsonFile = Path.Combine(pathToAsset, libraryName, "sound-mapping.json");
         if (!File.Exists(pathToJsonFile))
@@ -20,7 +24,8 @@ public class JsonMappingResolve : ISoundMappingResolve {
         }
 
         try {
-            _mapping = JsonSerializer.Deserialize<Dictionary<string, string?>>(jsonFile) ?? [];
+            _mapping = JsonSerializer.Deserialize(jsonFile, SoundMappingJsonContext.Default.DictionaryStringString)
+                       ?? [];
         }
         catch (JsonException ex) {
             throw new InvalidOperationException($"解析映射文件 {pathToJsonFile} 时出错：JSON 格式无效。详细信息：{ex.Message}", ex);
@@ -39,7 +44,13 @@ public class JsonMappingResolve : ISoundMappingResolve {
 
         if (pathToAudio is not null)
             return Path.Combine(_pathToLibrary, pathToAudio);
-        Console.WriteLine($"警告：事件“{key}”的映射值为空，将返回 null。");
+
+        _logger.LogWarning("事件“{Key}”的映射值为空，将返回 null,若触发该事件不会播放音频.", key);
+
         return null;
     }
+}
+
+[JsonSerializable(typeof(Dictionary<string, string?>))]
+public partial class SoundMappingJsonContext : JsonSerializerContext {
 }
