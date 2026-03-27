@@ -1,26 +1,26 @@
 namespace HyprSound.Type;
 
-public interface IHyprlandEvent {
+public interface IEventType {
 }
 
-public struct CloseWindowEvent : IHyprlandEvent {
+public struct CloseWindowEventType : IEventType {
 }
 
-public struct FullscreenEvent : IHyprlandEvent {
+public struct FullscreenEventType : IEventType {
 }
 
-public struct WorkspaceChangeEvent : IHyprlandEvent {
+public struct WorkspaceChangeEventType : IEventType {
 }
 
-public struct UrgentEvent : IHyprlandEvent {
+public struct UrgentEventType : IEventType {
 }
 
-public struct BellEvent : IHyprlandEvent {
+public struct BellEventType : IEventType {
     
 }
 
-public struct ConfigreloadedEvent : IHyprlandEvent {
+public struct ConfigReloadedEventType : IEventType {
 }
 
-public struct ChangefloatingmodeEvent : IHyprlandEvent {
+public struct ChangeFloatingModeEventType : IEventType {
 }

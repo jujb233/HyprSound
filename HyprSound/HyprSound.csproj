@@ -11,7 +11,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Src\Player\" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.5" />
+      <PackageReference Include="SDL3-CS" Version="3.4.2" />
+      <PackageReference Include="System.Text.Json" Version="10.0.5" />
     </ItemGroup>
 
 </Project>

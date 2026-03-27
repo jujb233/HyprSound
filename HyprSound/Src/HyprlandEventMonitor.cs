@@ -6,13 +6,13 @@ namespace HyprSound;
 public class HyprlandEventMonitor : IDisposable {
     private StreamReader? _reader;
     private readonly CancellationTokenSource _cts = new();
-    
-    public event Action<IHyprlandEvent>? HyprEvent; 
+
+    public event Action<IEventType>? HyprEvent;
 
     public async Task StartMonitor(CancellationToken externalToken = default) {
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(externalToken, _cts.Token);
         var token = linkedCts.Token;
-        
+
         try {
             _reader = await HyprlandIpcSocketConnector.InitIpcSocketReader();
 
@@ -23,9 +23,9 @@ public class HyprlandEventMonitor : IDisposable {
                 }
 
                 try {
-                    var hyprEvent = line.AnalysisToHyprlandEvent();
+                    var hyprEvent = line.ResolveHyprlandEvent();
                     HyprEvent?.Invoke(hyprEvent);
-                    Console.WriteLine(hyprEvent.ToString());
+                    Console.WriteLine($"解析成功: '{line}' -> '{hyprEvent}'");
                 }
                 catch (Exception ex) {
                     Console.WriteLine($"解析事件失败: {ex.Message}");

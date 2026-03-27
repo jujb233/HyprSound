@@ -27,7 +27,7 @@
             dotnetPkg
           ];
 
-          extraLibs = [ ] ++ deps;
+          extraLibs = [ pkgs.sdl3 ] ++ deps;
         in
         {
           default = pkgs.mkShell {
