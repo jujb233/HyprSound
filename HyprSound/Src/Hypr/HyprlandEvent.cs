@@ -1,7 +1,6 @@
-namespace HyprSound.Type;
+using HyprSound.Type;
 
-public interface IEventType {
-}
+namespace HyprSound.Hypr;
 
 public struct CloseWindowEventType : IEventType {
 }

@@ -1,3 +1,4 @@
+using HyprSound.Hypr;
 using HyprSound.Type;
 
 namespace HyprSound.Util;
