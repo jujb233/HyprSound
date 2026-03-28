@@ -20,7 +20,7 @@ public static class ResolveEvent {
                 "bell" => new BellEventType(),
                 "configreloaded" => new ConfigReloadedEventType(),
                 "changefloatingmode" => new ChangeFloatingModeEventType(),
-                _ => throw new InvalidDataException($"未解析映射的HyprlandIpc事件: '{part}'")
+                _ => throw new InvalidDataException($"未映射的HyprlandIpc事件: '{part}'")
             };
         }
     }
