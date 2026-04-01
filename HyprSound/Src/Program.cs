@@ -4,58 +4,43 @@ using HyprSound.Player;
 using HyprSound.Resolve;
 using HyprSound.Type;
 using HyprSound.Type.Hypr;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-string assetPath;
-string soundLibrary;
+var commandLineArgs = args.Length == 1 && !args[0].StartsWith('-')
+    ? ["-l", args[0]]
+    : args;
 
-switch (args.Length) {
-    case 0:
-    case 1 when (args[0] == "-h" || args[0] == "--help"):
-        ShowHelp();
-        return;
-    // 处理 -p / --path 后参数不足的情况
-    case 1 when (args[0] == "-p" || args[0] == "--path"):
-        Console.WriteLine("错误：使用 -p 选项时需要指定 Asset 目录和音效库名。");
-        ShowHelp();
-        return;
-    case 1: {
-        // 用法：可执行文件 library-name
-        soundLibrary = args[0];
-        assetPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-            ".config", "hyprsound");
+var configuration = new ConfigurationBuilder()
+    .AddCommandLine(commandLineArgs, new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) {
+        ["-h"] = "help",
+        ["--help"] = "help",
+        ["-p"] = "path",
+        ["--path"] = "path",
+        ["-l"] = "library",
+        ["--library"] = "library"
+    })
+    .Build();
 
-        if (!Directory.Exists(assetPath)) {
-            Console.WriteLine($"错误：默认 Asset 目录不存在: {assetPath}");
-            Console.WriteLine("请使用 -p 选项指定 Asset 目录路径。");
-            return;
-        }
-
-        break;
-    }
-    case 3 when (args[0] == "-p" || args[0] == "--path"): {
-        // 用法：可执行文件 -p /path/to/some library-name
-        assetPath = args[1];
-        soundLibrary = args[2];
-
-        if (!Directory.Exists(assetPath)) {
-            Console.WriteLine($"错误：指定的 Asset 目录不存在: {assetPath}");
-            return;
-        }
-
-        break;
-    }
-    default:
-        Console.WriteLine("错误：参数格式不正确。");
-        ShowHelp();
-        return;
+if (commandLineArgs.Contains("-h") || commandLineArgs.Contains("--help") || configuration["help"] == "true") {
+    ShowHelp();
+    return;
 }
 
+var soundLibrary = configuration["library"];
+var assetPath = configuration["path"] ?? Path.Combine(
+    Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+    ".config", "hyprsound");
 
-if (string.IsNullOrWhiteSpace(soundLibrary)) {
+if (soundLibrary is null or "" or " ") {
     Console.WriteLine("错误：音效库名不能为空。");
+    ShowHelp();
+    return;
+}
+
+if (!Directory.Exists(assetPath)) {
+    Console.WriteLine($"错误：Asset 目录不存在: {assetPath}");
     return;
 }
 
@@ -120,13 +105,15 @@ void ShowHelp() {
     Console.WriteLine("用法: hyprsound [选项] <音效库名>");
     Console.WriteLine();
     Console.WriteLine("参数说明:");
-    Console.WriteLine("  <音效库名>          要使用的音效库目录名。");
+    Console.WriteLine("  <音效库名>          要使用的音效库目录名（等同于 -l <音效库名>）。");
     Console.WriteLine();
     Console.WriteLine("选项:");
     Console.WriteLine("  -p, --path <目录>   指定 Asset 根目录路径（默认为 ~/.config/hyprsound/）");
+    Console.WriteLine("  -l, --library <名称> 指定音效库名称（也可直接作为位置参数传入）");
     Console.WriteLine("  -h, --help          显示此帮助信息");
     Console.WriteLine();
     Console.WriteLine("示例:");
     Console.WriteLine("  hyprsound default                      # 使用 ~/.config/hyprsound/default 音效库");
-    Console.WriteLine("  hyprsound -p /path/to/asset library      # 使用指定目录下的 library 音效库");
+    Console.WriteLine("  hyprsound -p /path/to/asset -l library      # 使用指定目录下的 library 音效库");
+    Console.WriteLine("  hyprsound --path /path/to/asset --library library      # 使用显式参数指定音效库");
 }

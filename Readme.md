@@ -62,6 +62,13 @@ library1/
 ```bash
 nix run .#hyprsound library1
 ```
+
+也可以显式指定参数：
+
+```bash
+nix run .#hyprsound -- --path /path/to/hyprsound --library library1
+```
+
 程序将自动监听 Hyprland 事件，并在匹配到配置的事件时播放对应的音效。
 
 ## ⚙️ 配置
