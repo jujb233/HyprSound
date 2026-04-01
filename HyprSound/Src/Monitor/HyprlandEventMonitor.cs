@@ -2,9 +2,9 @@ using HyprSound.Type;
 using HyprSound.Util;
 using Microsoft.Extensions.Logging;
 
-namespace HyprSound;
+namespace HyprSound.Monitor;
 
-public class HyprlandEventMonitor(ILogger<HyprlandEventMonitor> logger) : IDisposable {
+public class HyprlandEventMonitor(ILogger<HyprlandEventMonitor> logger, IEventParser eventParser) : IDisposable {
     private StreamReader? _reader;
     private readonly CancellationTokenSource _cts = new();
 
@@ -30,14 +30,19 @@ public class HyprlandEventMonitor(ILogger<HyprlandEventMonitor> logger) : IDispo
             }
 
             try {
-                var hyprEvent = line.ResolveHyprlandEvent();
+                if (!eventParser.TryParse(line, out var hyprEvent, out var parseError) || hyprEvent is null) {
+                    if (logger.IsEnabled(LogLevel.Debug))
+                        logger.LogDebug("解析事件失败: {ExMessage}", parseError ?? "未知错误");
+                    continue;
+                }
+
                 HyprEvent?.Invoke(hyprEvent);
 
                 if (logger.IsEnabled(LogLevel.Debug))
                     logger.LogDebug("解析成功: '{Line}' -> '{HyprEventEventName}'", line, hyprEvent.EventName);
             }
             catch (Exception ex) {
-                logger.LogWarning("解析事件失败: {ExMessage}", ex.Message);
+                logger.LogWarning("处理事件失败: {ExMessage}", ex.Message);
             }
         }
     }

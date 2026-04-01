@@ -1,7 +1,9 @@
-﻿using HyprSound;
-using HyprSound.Map;
+﻿using HyprSound.Map;
+using HyprSound.Monitor;
 using HyprSound.Player;
+using HyprSound.Resolve;
 using HyprSound.Type;
+using HyprSound.Type.Hypr;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -58,7 +60,7 @@ if (string.IsNullOrWhiteSpace(soundLibrary)) {
 }
 
 // 检查音效库子目录是否存在
-string libraryPath = Path.Combine(assetPath, soundLibrary);
+var libraryPath = Path.Combine(assetPath, soundLibrary);
 if (!Directory.Exists(libraryPath)) {
     Console.WriteLine($"错误：音效库目录不存在: {libraryPath}");
     return;
@@ -69,8 +71,15 @@ var serviceProvider = new ServiceCollection()
         builder.AddConsole();
         builder.SetMinimumLevel(LogLevel.Information);
     })
+    .AddSingleton<IEventCatalog, HyprlandEventCatalog>()
+    .AddSingleton<IEventParser, HyprlandEventResolve>()
     .AddSingleton<ISoundMappingResolve>(sp =>
-        new JsonMappingResolve(assetPath, soundLibrary, sp.GetRequiredService<ILogger<JsonMappingResolve>>())
+        new JsonMappingResolve(
+            assetPath,
+            soundLibrary,
+            sp.GetServices<IEventCatalog>(),
+            sp.GetRequiredService<ILogger<JsonMappingResolve>>()
+        )
     )
     .AddSingleton<IPlayer>(sp =>
         new SdlPlayer(sp.GetRequiredService<ISoundMappingResolve>(),
