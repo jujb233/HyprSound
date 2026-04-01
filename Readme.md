@@ -40,6 +40,21 @@
    nix run .#hyprsound
    ```
 
+### 更新 NuGet 依赖
+
+当你修改 `HyprSound/HyprSound.csproj` 里的 `PackageReference` 后，需要同步更新根目录的 `deps.json`：
+
+```bash
+nix build .#hyprsound.passthru.fetch-deps
+./result deps.json
+```
+
+然后再执行：
+
+```bash
+nix build .#hyprsound
+```
+
 ## 🚀 使用
 
 创建音效库目录：
