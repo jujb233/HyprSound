@@ -24,7 +24,7 @@ public class JsonMappingResolve : ISoundMappingResolve {
         _knownEvents = catalogsArray
             .SelectMany(static catalog => catalog.EventNames)
             .Where(static name => name is not ("" or " "))
-            .ToHashSet(StringComparer.Ordinal);
+            .ToHashSet(StringComparer.Ordinal); // TODO 事件重名处理
 
         var pathToJsonFile = Path.Combine(pathToAsset, libraryName, "sound-mapping.json");
         if (!File.Exists(pathToJsonFile))
@@ -105,6 +105,7 @@ public class JsonMappingResolve : ISoundMappingResolve {
     }
 }
 
+[JsonSourceGenerationOptions(WriteIndented = true)]
 [JsonSerializable(typeof(Dictionary<string, string?>))]
 public partial class SoundMappingJsonContext : JsonSerializerContext {
 }

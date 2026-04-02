@@ -66,15 +66,38 @@ rootCommand.Options.Add(pathOption);
 initCommand.Options.Add(libraryOption);
 initCommand.Options.Add(pathOption);
 
+
 initCommand.SetAction(result => {
     var soundLibrary = result.GetRequiredValue(libraryOption);
     var assetPath = GetAssetPath(result.GetValue(pathOption));
     var libraryPath = Path.Combine(assetPath, soundLibrary);
 
-    (new Initialization()).InitJsonFile(libraryPath);
-});
+    var serviceProvider = new ServiceCollection()
+        .AddLogging(builder => {
+            builder.AddConsole();
+            builder.SetMinimumLevel(LogLevel.Information);
+        })
+        .AddSingleton<IEventCatalog, HyprlandEventCatalog>()
+        .AddSingleton<Initialization>()
+        .BuildServiceProvider();
 
+    var catalogs = serviceProvider.GetService<IEventCatalog>();
+    if (catalogs is null) {
+        Console.WriteLine("错误: 事件列表为空,无法初始化配置文件.");
+        return;
+    }
+
+    var eventNames = (new[] { catalogs })
+        .SelectMany(static catalog => catalog.EventNames)
+        .Where(static name => name is not ("" or " "))
+        .ToHashSet(StringComparer.Ordinal); // TODO 事件重名处理
+
+    var initialization = serviceProvider.GetRequiredService<Initialization>();
+    initialization.InitJsonFile(libraryPath, eventNames);
+});
 rootCommand.Add(initCommand);
+
+
 rootCommand.SetAction(async result => {
     var soundLibrary = result.GetRequiredValue(libraryOption);
     var assetPath = GetAssetPath(result.GetValue(pathOption));
