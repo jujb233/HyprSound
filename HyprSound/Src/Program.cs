@@ -5,51 +5,79 @@ using HyprSound.Player;
 using HyprSound.Resolve;
 using HyprSound.Type;
 using HyprSound.Type.Hypr;
+using HyprSound.Util;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-var libraryArgument = new Argument<string?>("library") {
-    Description = "要使用的音效库目录名"
+var libraryOption = new Option<string>("--library") {
+    Description = "指定音效库名称（必需）",
+    Required = true,
+    Aliases = { "-l" },
+    Validators = {
+        result => {
+            if (string.IsNullOrWhiteSpace(result.GetValueOrDefault<string>()))
+                result.AddError("音效库名不能为空。");
+        }
+    }
 };
 
-var libraryOption = new Option<string?>("--library") {
-    Description = "指定音效库名称"
+var pathOption = new Option<string>("--path") {
+    Description = "指定 Asset 根目录路径（默认为 ~/.config/hyprsound/）",
+    Aliases = { "-p" },
+    Validators = {
+        result => {
+            var path = result.GetValueOrDefault<string>();
+            if (!Directory.Exists(path))
+                result.AddError($"Asset 目录不存在: {path}");
+        }
+    }
 };
-libraryOption.Aliases.Add("-l");
 
-var pathOption = new Option<string?>("--path") {
-    Description = "指定 Asset 根目录路径（默认为 ~/.config/hyprsound/）"
+var rootCommand = new RootCommand("HyprSound - 为你的使用Hyprland的Linux系统添加系统音效的命令行工具") {
+    Validators = {
+        result => {
+            var soundLibrary = result.GetValue(libraryOption);
+            var assetPath = GetAssetPath(result.GetValue(pathOption));
+
+            if (soundLibrary is null) return;
+            var libraryPath = Path.Combine(assetPath, soundLibrary);
+            if (!Directory.Exists(libraryPath))
+                result.AddError($"音效库目录不存在: {libraryPath}");
+        }
+    }
 };
-pathOption.Aliases.Add("-p");
+var initCommand = new Command("init", "初始化音效库配置文件") {
+    Validators = {
+        result => {
+            var soundLibrary = result.GetValue(libraryOption);
+            var assetPath = GetAssetPath(result.GetValue(pathOption));
 
-var rootCommand = new RootCommand("HyprSound - 播放音效");
-rootCommand.Arguments.Add(libraryArgument);
+            if (soundLibrary is null) return;
+            var libraryPath = Path.Combine(assetPath, soundLibrary);
+            if (!Directory.Exists(libraryPath))
+                result.AddError($"音效库目录不存在: {libraryPath}");
+        }
+    }
+};
+
 rootCommand.Options.Add(libraryOption);
 rootCommand.Options.Add(pathOption);
 
-rootCommand.SetAction(async parseResult => {
-    var soundLibrary = parseResult.GetValue(libraryOption) ?? parseResult.GetValue(libraryArgument);
+initCommand.Options.Add(libraryOption);
+initCommand.Options.Add(pathOption);
 
-    var assetPath = parseResult.GetValue(pathOption) ?? Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-        ".config", "hyprsound");
-
-    if (string.IsNullOrWhiteSpace(soundLibrary)) {
-        Console.WriteLine("错误：音效库名不能为空。");
-        return;
-    }
-
-    if (!Directory.Exists(assetPath)) {
-        Console.WriteLine($"错误：Asset 目录不存在: {assetPath}");
-        return;
-    }
-
-    // 检查音效库子目录是否存在
+initCommand.SetAction(result => {
+    var soundLibrary = result.GetRequiredValue(libraryOption);
+    var assetPath = GetAssetPath(result.GetValue(pathOption));
     var libraryPath = Path.Combine(assetPath, soundLibrary);
-    if (!Directory.Exists(libraryPath)) {
-        Console.WriteLine($"错误：音效库目录不存在: {libraryPath}");
-        return;
-    }
+
+    (new Initialization()).InitJsonFile(libraryPath);
+});
+
+rootCommand.Add(initCommand);
+rootCommand.SetAction(async result => {
+    var soundLibrary = result.GetRequiredValue(libraryOption);
+    var assetPath = GetAssetPath(result.GetValue(pathOption));
 
     var serviceProvider = new ServiceCollection()
         .AddLogging(builder => {
@@ -101,3 +129,8 @@ rootCommand.SetAction(async parseResult => {
 });
 
 return rootCommand.Parse(args).Invoke();
+
+string GetAssetPath(string? input) =>
+    input ?? Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+        ".config", "hyprsound");
