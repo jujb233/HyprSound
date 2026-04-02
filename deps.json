@@ -63,5 +63,10 @@
     "pname": "SDL3-CS",
     "version": "3.4.2",
     "hash": "sha256-jDAw7XDH3XyhAa4sS1/snLwGFyDlMUqfvl46OwOmFlY="
+  },
+  {
+    "pname": "System.CommandLine",
+    "version": "2.0.5",
+    "hash": "sha256-gavBH1nbVZW50miEpDQ6KKRDfHRlFz6ZLYkh0LOWug4="
   }
 ]
