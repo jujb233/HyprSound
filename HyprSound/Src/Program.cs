@@ -9,10 +9,27 @@ using HyprSound.Util;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-var libraryOption = new Option<string>("--library") {
+var logLevelOption = new Option<LogLevel?>("--log-level", "-v") {
+    Description = "设置日志级别 (None, Error, Warning, Information, Debug, Trace)",
+    HelpName = "level",
+    Arity = ArgumentArity.ZeroOrOne,
+    Validators = {
+        result => {
+            var value = result.Tokens.SingleOrDefault()?.Value;
+            if (string.IsNullOrEmpty(value))
+                return;
+
+            if (Enum.TryParse<LogLevel>(value, true, out var _))
+                return;
+
+            result.AddError($"无效的日志级别: {value}。有效值: None, Error, Warning, Information, Debug, Trace");
+        }
+    }
+};
+
+var libraryOption = new Option<string>("--library", "-l") {
     Description = "指定音效库名称（必需）",
     Required = true,
-    Aliases = { "-l" },
     Validators = {
         result => {
             if (string.IsNullOrWhiteSpace(result.GetValueOrDefault<string>()))
@@ -21,9 +38,8 @@ var libraryOption = new Option<string>("--library") {
     }
 };
 
-var pathOption = new Option<string>("--path") {
+var pathOption = new Option<string>("--path", "-p") {
     Description = "指定 Asset 根目录路径（默认为 ~/.config/hyprsound/）",
-    Aliases = { "-p" },
     Validators = {
         result => {
             var path = result.GetValueOrDefault<string>();
@@ -62,9 +78,11 @@ var initCommand = new Command("init", "初始化音效库配置文件") {
 
 rootCommand.Options.Add(libraryOption);
 rootCommand.Options.Add(pathOption);
+rootCommand.Options.Add(logLevelOption);
 
 initCommand.Options.Add(libraryOption);
 initCommand.Options.Add(pathOption);
+initCommand.Options.Add(logLevelOption);
 
 
 initCommand.SetAction(result => {
@@ -72,10 +90,11 @@ initCommand.SetAction(result => {
     var assetPath = GetAssetPath(result.GetValue(pathOption));
     var libraryPath = Path.Combine(assetPath, soundLibrary);
 
+    var logLevel = result.GetValue(logLevelOption) ?? LogLevel.Information;
     var serviceProvider = new ServiceCollection()
         .AddLogging(builder => {
             builder.AddConsole();
-            builder.SetMinimumLevel(LogLevel.Information);
+            builder.SetMinimumLevel(logLevel);
         })
         .AddSingleton<IEventCatalog, HyprlandEventCatalog>()
         .AddSingleton<Initialization>()
@@ -102,24 +121,25 @@ rootCommand.SetAction(async result => {
     var soundLibrary = result.GetRequiredValue(libraryOption);
     var assetPath = GetAssetPath(result.GetValue(pathOption));
 
+    var logLevel = result.GetValue(logLevelOption) ?? LogLevel.Information;
     var serviceProvider = new ServiceCollection()
         .AddLogging(builder => {
             builder.AddConsole();
-            builder.SetMinimumLevel(LogLevel.Information);
+            builder.SetMinimumLevel(logLevel);
         })
         .AddSingleton<IEventCatalog, HyprlandEventCatalog>()
         .AddSingleton<IEventParser, HyprlandEventResolve>()
-        .AddSingleton<ISoundMappingResolve>(sp =>
+        .AddSingleton<ISoundMappingResolve>(provider =>
             new JsonMappingResolve(
                 assetPath,
                 soundLibrary,
-                sp.GetServices<IEventCatalog>(),
-                sp.GetRequiredService<ILogger<JsonMappingResolve>>()
+                provider.GetServices<IEventCatalog>(),
+                provider.GetRequiredService<ILogger<JsonMappingResolve>>()
             )
         )
-        .AddSingleton<IPlayer>(sp =>
-            new SdlPlayer(sp.GetRequiredService<ISoundMappingResolve>(),
-                sp.GetRequiredService<ILogger<SdlPlayer>>())
+        .AddSingleton<IPlayer>(provider =>
+            new SdlPlayer(provider.GetRequiredService<ISoundMappingResolve>(),
+                provider.GetRequiredService<ILogger<SdlPlayer>>())
         )
         .AddSingleton<HyprlandEventMonitor>()
         .BuildServiceProvider();
