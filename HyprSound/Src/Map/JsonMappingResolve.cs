@@ -22,7 +22,7 @@ public class JsonMappingResolve : ISoundMappingResolve {
         var catalogsArray = catalogs as IEventCatalog[] ?? catalogs.ToArray();
 
         _knownEvents = catalogsArray
-            .SelectMany(static catalog => catalog.KnownEventNames)
+            .SelectMany(static catalog => catalog.EventNames)
             .Where(static name => name is not ("" or " "))
             .ToHashSet(StringComparer.Ordinal);
 
@@ -83,7 +83,7 @@ public class JsonMappingResolve : ISoundMappingResolve {
 
         foreach (var catalog in catalogs) {
             _logger.LogInformation("已注册事件目录: {SourceName} ({Count})", catalog.SourceName,
-                catalog.KnownEventNames.Count);
+                catalog.EventNames.Count);
         }
 
         if (missingKey.Length > 0) {
