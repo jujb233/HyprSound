@@ -1,11 +1,10 @@
 ﻿using System.CommandLine;
-using HyprSound.Map;
-using HyprSound.Monitor;
+using HyprSound;
+using HyprSound.Hyprland;
+using HyprSound.Hyprland.Event;
+using HyprSound.Interface;
+using HyprSound.MappingResolve;
 using HyprSound.Player;
-using HyprSound.Resolve;
-using HyprSound.Type;
-using HyprSound.Type.Hypr;
-using HyprSound.Util;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 

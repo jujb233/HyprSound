@@ -1,4 +1,4 @@
-using HyprSound.Type;
+using HyprSound.Interface;
 using Microsoft.Extensions.Logging;
 using SDL3;
 

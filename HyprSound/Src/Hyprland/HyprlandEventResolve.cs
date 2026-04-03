@@ -1,7 +1,7 @@
-using HyprSound.Type;
-using HyprSound.Type.Hypr;
+using HyprSound.Hyprland.Event;
+using HyprSound.Interface;
 
-namespace HyprSound.Resolve;
+namespace HyprSound.Hyprland;
 
 public sealed class HyprlandEventResolve : IEventParser {
     public bool TryParse(string input, out IEventType? eventType, out string? error) {

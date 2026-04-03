@@ -1,4 +1,6 @@
-namespace HyprSound.Type.Hypr;
+using HyprSound.Interface;
+
+namespace HyprSound.Hyprland.Event;
 
 public static class HyprlandEvents {
     public const string CloseWindow = "CloseWindow";

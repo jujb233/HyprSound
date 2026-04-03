@@ -1,8 +1,9 @@
 using System.Text.Json;
-using HyprSound.Map;
+using HyprSound.MappingResolve;
 using Microsoft.Extensions.Logging;
 
-namespace HyprSound.Util;
+
+namespace HyprSound;
 
 public class Initialization(ILogger<Initialization> logger) {
     public void InitJsonFile(string pathToLibrary, IEnumerable<string> eventNames) {

@@ -1,4 +1,4 @@
-namespace HyprSound.Type;
+namespace HyprSound.Interface;
 
 public interface IEventCatalog {
     string SourceName { get; }

@@ -1,4 +1,6 @@
-namespace HyprSound.Type.Hypr;
+using HyprSound.Interface;
+
+namespace HyprSound.Hyprland.Event;
 
 public sealed class HyprlandEventCatalog : IEventCatalog {
     public string SourceName => "Hyprland";

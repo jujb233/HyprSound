@@ -1,8 +1,7 @@
-using HyprSound.Type;
-using HyprSound.Util;
+using HyprSound.Interface;
 using Microsoft.Extensions.Logging;
 
-namespace HyprSound.Monitor;
+namespace HyprSound.Hyprland;
 
 public class HyprlandEventMonitor(ILogger<HyprlandEventMonitor> logger, IEventParser eventParser) : IDisposable {
     private StreamReader? _reader;

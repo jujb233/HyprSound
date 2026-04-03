@@ -1,9 +1,9 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using HyprSound.Type;
+using HyprSound.Interface;
 using Microsoft.Extensions.Logging;
 
-namespace HyprSound.Map;
+namespace HyprSound.MappingResolve;
 
 public class JsonMappingResolve : ISoundMappingResolve {
     private readonly ILogger<JsonMappingResolve> _logger;

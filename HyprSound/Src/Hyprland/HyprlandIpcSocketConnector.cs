@@ -1,6 +1,6 @@
 using System.Net.Sockets;
 
-namespace HyprSound.Util;
+namespace HyprSound.Hyprland;
 
 public static class HyprlandIpcSocketConnector{
     private static string InstanceSignature {
