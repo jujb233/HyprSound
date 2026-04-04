@@ -4,7 +4,7 @@ using SDL3;
 
 namespace HyprSound.Player;
 
-public class SdlPlayer : IPlayer, IDisposable {
+public class SdlPlayer : IPlayer {
     private readonly ISoundMappingResolve _soundMappingResolve;
     private readonly ILogger<SdlPlayer> _logger;
     private IntPtr _currentStream = IntPtr.Zero;

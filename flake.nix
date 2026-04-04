@@ -23,6 +23,7 @@
             zlib
             openssl
             stdenv.cc.cc
+            systemd
           ];
           # 额外工具（可选）
           tools = with pkgs; [ git ];
@@ -43,7 +44,7 @@
             );
 
             # 其它环境变量
-            LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath [ pkgs.sdl3 ];
+            LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath [ pkgs.sdl3 pkgs.systemd ];
             DOTNET_ROOT = "${dotnetSdk}";
             DOTNET_CLI_TELEMETRY_OPTOUT = "1";
 
@@ -91,6 +92,7 @@
             openssl
             stdenv.cc.cc
             sdl3
+            systemd
             binutils
             glibc
           ];
@@ -129,7 +131,7 @@
               mkdir -p $out/bin
               cp $out/lib/hyprsound/HyprSound $out/bin/hyprsound
               wrapProgram $out/bin/hyprsound \
-                --set LD_LIBRARY_PATH "${pkgs.lib.makeLibraryPath [ pkgs.sdl3 ]}"
+                --set LD_LIBRARY_PATH "${pkgs.lib.makeLibraryPath [ pkgs.sdl3 pkgs.systemd ]}"
             '';
 
             meta = with pkgs.lib; {

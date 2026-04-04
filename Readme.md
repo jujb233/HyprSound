@@ -8,6 +8,7 @@
 ## ✨ 特性
 
 - 监听 Hyprland IPC 事件，实时响应
+- 支持识别 USB 挂载/卸载事件(不是物理插拔)
 - 支持自定义音效库，灵活配置
 - 简单易用的 JSON 映射配置
 - 专为 NixOS 优化，支持 flake 和 direnv
@@ -19,6 +20,14 @@
 ### NixOS 用户
 
 项目基于 NixOS 开发，推荐启用 **flakes** 和 **direnv** 进行环境管理。
+
+#### 运行/构建依赖（NixOS）
+
+通过 `flake.nix` 进入开发环境或构建时，会自动提供以下关键依赖：
+
+- `.NET SDK 10`：用于构建和运行项目。
+- `SDL3`：用于音频播放。
+- `systemd`（提供 `libudev.so.1`）：用于 USB 事件监听（`Usb.Events` 在 Linux 下依赖 `libudev`）。
 
 1. 克隆本仓库：
 
@@ -115,7 +124,12 @@ dotnet run --project HyprSound/HyprSound.csproj -- --library library1
 
 ## 📌 支持的事件
 
-可参考项目源码中的 Src/Type/Hypr/ 目录，了解所有可用事件类型。
+当前支持两类事件：
+
+- Hyprland 事件：可参考 `HyprSound/Src/Hyprland/Event/HyprlandEvent.cs`。
+- USB 事件（挂载/卸载）：可参考 `HyprSound/Src/Usb/Event/UsbEvent.cs`。
+
+> 注意：USB 事件默认监听的是“已挂载/已卸载”，不是物理插入/拔出动作。
 
 ## ⚠️ 注意
 本项目仅在 NixOS 系统上开发和测试，其他发行版未经测试，可能存在兼容性问题。

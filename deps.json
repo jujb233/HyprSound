@@ -65,8 +65,23 @@
     "hash": "sha256-jDAw7XDH3XyhAa4sS1/snLwGFyDlMUqfvl46OwOmFlY="
   },
   {
+    "pname": "System.CodeDom",
+    "version": "8.0.0",
+    "hash": "sha256-uwVhi3xcvX7eiOGQi7dRETk3Qx1EfHsUfchZsEto338="
+  },
+  {
     "pname": "System.CommandLine",
     "version": "2.0.5",
     "hash": "sha256-gavBH1nbVZW50miEpDQ6KKRDfHRlFz6ZLYkh0LOWug4="
+  },
+  {
+    "pname": "System.Management",
+    "version": "8.0.0",
+    "hash": "sha256-HwpfDb++q7/vxR6q57mGFgl5U0vxy+oRJ6orFKORfP0="
+  },
+  {
+    "pname": "Usb.Events",
+    "version": "11.1.1.1",
+    "hash": "sha256-mX4hWS22QSIVy9cuphz0HJypgMwUjXF5n03Mnbk+hwM="
   }
 ]

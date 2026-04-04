@@ -5,6 +5,8 @@ using HyprSound.Hyprland.Event;
 using HyprSound.Interface;
 using HyprSound.MappingResolve;
 using HyprSound.Player;
+using HyprSound.Usb;
+using HyprSound.Usb.Event;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -84,18 +86,19 @@ initCommand.Options.Add(pathOption);
 initCommand.Options.Add(logLevelOption);
 
 
-initCommand.SetAction(result => {
+initCommand.SetAction(async result => {
     var soundLibrary = result.GetRequiredValue(libraryOption);
     var assetPath = GetAssetPath(result.GetValue(pathOption));
     var libraryPath = Path.Combine(assetPath, soundLibrary);
 
     var logLevel = result.GetValue(logLevelOption) ?? LogLevel.Information;
-    var serviceProvider = new ServiceCollection()
+    await using var serviceProvider = new ServiceCollection()
         .AddLogging(builder => {
             builder.AddConsole();
             builder.SetMinimumLevel(logLevel);
         })
-        .AddSingleton<IEventCatalog, HyprlandEventCatalog>()
+        .AddSingleton<IEventCatalog>(new HyprlandEvents())
+        .AddSingleton<IEventCatalog>(new UsbEvents())
         .AddSingleton<Initialization>()
         .BuildServiceProvider();
 
@@ -121,13 +124,14 @@ rootCommand.SetAction(async result => {
     var assetPath = GetAssetPath(result.GetValue(pathOption));
 
     var logLevel = result.GetValue(logLevelOption) ?? LogLevel.Information;
-    var serviceProvider = new ServiceCollection()
+    await using var serviceProvider = new ServiceCollection()
         .AddLogging(builder => {
             builder.AddConsole();
             builder.SetMinimumLevel(logLevel);
         })
-        .AddSingleton<IEventCatalog, HyprlandEventCatalog>()
-        .AddSingleton<IEventParser, HyprlandEventResolve>()
+        .AddSingleton<IEventCatalog>(new HyprlandEvents())
+        .AddSingleton<IEventResolve, HyprlandEventResolve>()
+        .AddSingleton<IEventCatalog>(new UsbEvents())
         .AddSingleton<ISoundMappingResolve>(provider =>
             new JsonMappingResolve(
                 assetPath,
@@ -141,6 +145,7 @@ rootCommand.SetAction(async result => {
                 provider.GetRequiredService<ILogger<SdlPlayer>>())
         )
         .AddSingleton<HyprlandEventMonitor>()
+        .AddSingleton<UsbEventMonitor>()
         .BuildServiceProvider();
 
     var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
@@ -153,19 +158,25 @@ rootCommand.SetAction(async result => {
         cts.Cancel();
     };
 
-    var monitor = serviceProvider.GetRequiredService<HyprlandEventMonitor>();
+    var hyprlandMonitor = serviceProvider.GetRequiredService<HyprlandEventMonitor>();
+    var usbMonitor = serviceProvider.GetRequiredService<UsbEventMonitor>();
     var player = serviceProvider.GetRequiredService<IPlayer>();
 
-    monitor.HyprEvent += player.Play;
+    hyprlandMonitor.HyprEvent += player.Play;
+    usbMonitor.UsbEvent += player.Play;
+
+    var monitorTasks = new[] {
+        Task.Run(() => hyprlandMonitor.StartMonitor(cts.Token)),
+        Task.Run(() => usbMonitor.StartMonitor(cts.Token))
+    };
 
     try {
-        await monitor.StartMonitor(cts.Token);
+        await Task.WhenAll(monitorTasks);
     }
     catch (Exception ex) {
         logger.LogError("程序异常: {ExMessage}", ex.Message);
     }
     finally {
-        serviceProvider.Dispose();
         Console.WriteLine("资源已释放，程序退出");
     }
 });
