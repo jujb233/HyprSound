@@ -3,7 +3,7 @@ using HyprSound.Interface;
 
 namespace HyprSound.Hyprland;
 
-public sealed class HyprlandEventResolve : IEventParser {
+public sealed class HyprlandEventResolve : IEventResolve {
     public bool TryParse(string input, out IEventType? eventType, out string? error) {
         eventType = null;
         error = null;

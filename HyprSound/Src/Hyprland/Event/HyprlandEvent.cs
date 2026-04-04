@@ -2,7 +2,10 @@ using HyprSound.Interface;
 
 namespace HyprSound.Hyprland.Event;
 
-public static class HyprlandEvents {
+public struct HyprlandEvents : IEventCatalog {
+    public HyprlandEvents() {
+    }
+
     public const string CloseWindow = "CloseWindow";
     public const string Fullscreen = "Fullscreen";
     public const string WorkspaceChange = "WorkspaceChange";
@@ -11,7 +14,9 @@ public static class HyprlandEvents {
     public const string ConfigReloaded = "ConfigReloaded";
     public const string ChangeFloatingMode = "ChangeFloatingMode";
 
-    public static readonly string[] All = [
+    public string SourceName => "Hyprland";
+
+    public IReadOnlyCollection<string> EventNames { get; } = [
         CloseWindow,
         Fullscreen,
         WorkspaceChange,

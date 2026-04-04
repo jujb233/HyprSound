@@ -1,6 +1,6 @@
 namespace HyprSound.Interface;
 
-public interface IEventParser {
+public interface IEventResolve {
     bool TryParse(string input, out IEventType? eventType, out string? error);
 }
 

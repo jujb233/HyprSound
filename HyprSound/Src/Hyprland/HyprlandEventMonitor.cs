@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace HyprSound.Hyprland;
 
-public class HyprlandEventMonitor(ILogger<HyprlandEventMonitor> logger, IEventParser eventParser) : IDisposable {
+public class HyprlandEventMonitor(ILogger<HyprlandEventMonitor> logger, IEventResolve eventResolve) : IMonitor {
     private StreamReader? _reader;
     private readonly CancellationTokenSource _cts = new();
 
@@ -29,7 +29,7 @@ public class HyprlandEventMonitor(ILogger<HyprlandEventMonitor> logger, IEventPa
             }
 
             try {
-                if (!eventParser.TryParse(line, out var hyprEvent, out var parseError) || hyprEvent is null) {
+                if (!eventResolve.TryParse(line, out var hyprEvent, out var parseError) || hyprEvent is null) {
                     if (logger.IsEnabled(LogLevel.Debug))
                         logger.LogDebug("解析事件失败: {ExMessage}", parseError ?? "未知错误");
                     continue;
