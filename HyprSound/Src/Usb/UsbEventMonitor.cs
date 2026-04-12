@@ -15,9 +15,9 @@ public class UsbEventMonitor(ILogger<UsbEventMonitor> logger) : IMonitor {
         includeTTY: false
     );
 
-    public event Action<IEventType>? UsbEvent;
+    public event Action<IEventType>? EventOccurred;
 
-    public async Task StartMonitor(CancellationToken externalToken = default) {
+    public async Task StartAsync(CancellationToken externalToken = default) {
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(externalToken, _cts.Token);
         var token = linkedCts.Token;
 
@@ -44,14 +44,14 @@ public class UsbEventMonitor(ILogger<UsbEventMonitor> logger) : IMonitor {
         if (logger.IsEnabled(LogLevel.Debug))
             logger.LogDebug("USB 驱动器已卸载: {Path}", path);
 
-        UsbEvent?.Invoke(new UsbDriveEjectedEventType());
+        EventOccurred?.Invoke(new UsbDriveEjectedEventType());
     }
 
     private void OnUsbDriveMounted(object? sender, string path) {
         if (logger.IsEnabled(LogLevel.Debug))
             logger.LogDebug("USB 驱动器已挂载: {Path}", path);
 
-        UsbEvent?.Invoke(new UsbDriveMountedEventType());
+        EventOccurred?.Invoke(new UsbDriveMountedEventType());
     }
 
     private void DisposeWatcher() {

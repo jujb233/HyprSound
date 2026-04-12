@@ -1,5 +1,6 @@
 namespace HyprSound.Interface;
 
 public interface IMonitor : IDisposable {
-    public Task StartMonitor(CancellationToken externalToken = default);
+    event Action<IEventType> EventOccurred;
+    Task StartAsync(CancellationToken cancellationToken);
 }

@@ -7,9 +7,9 @@ public class HyprlandEventMonitor(ILogger<HyprlandEventMonitor> logger, IEventRe
     private StreamReader? _reader;
     private readonly CancellationTokenSource _cts = new();
 
-    public event Action<IEventType>? HyprEvent;
+    public event Action<IEventType>? EventOccurred;
 
-    public async Task StartMonitor(CancellationToken externalToken = default) {
+    public async Task StartAsync(CancellationToken externalToken = default) {
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(externalToken, _cts.Token);
         var token = linkedCts.Token;
 
@@ -35,7 +35,7 @@ public class HyprlandEventMonitor(ILogger<HyprlandEventMonitor> logger, IEventRe
                     continue;
                 }
 
-                HyprEvent?.Invoke(hyprEvent);
+                EventOccurred?.Invoke(hyprEvent);
 
                 if (logger.IsEnabled(LogLevel.Debug))
                     logger.LogDebug("解析成功: '{Line}' -> '{HyprEventEventName}'", line, hyprEvent.EventName);
