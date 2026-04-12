@@ -1,5 +1,5 @@
+using HyprSound.Event;
 using HyprSound.Interface;
-using HyprSound.Usb.Event;
 using Microsoft.Extensions.Logging;
 using Usb.Events;
 
@@ -44,14 +44,14 @@ public class UsbEventMonitor(ILogger<UsbEventMonitor> logger) : IMonitor {
         if (logger.IsEnabled(LogLevel.Debug))
             logger.LogDebug("USB 驱动器已卸载: {Path}", path);
 
-        EventOccurred?.Invoke(new UsbDriveEjectedEventType());
+        EventOccurred?.Invoke(new StandardEvent("UsbDevice", EventKind.UsbDriveEjected));
     }
 
     private void OnUsbDriveMounted(object? sender, string path) {
         if (logger.IsEnabled(LogLevel.Debug))
             logger.LogDebug("USB 驱动器已挂载: {Path}", path);
 
-        EventOccurred?.Invoke(new UsbDriveMountedEventType());
+        EventOccurred?.Invoke(new StandardEvent("UsbDevice", EventKind.UsbDriveMounted));
     }
 
     private void DisposeWatcher() {

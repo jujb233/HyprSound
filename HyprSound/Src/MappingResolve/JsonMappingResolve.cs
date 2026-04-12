@@ -52,11 +52,11 @@ public class JsonMappingResolve : ISoundMappingResolve {
 
     public string? GetResolvePath(IEventType eventType) {
         var key = eventType.EventName;
-        if (key is null) {
+        if (key.ToString() is "") {
             throw new NullReferenceException("要解析的事件为空，无法做映射处理");
         }
 
-        if (!_mapping.TryGetValue(key, out var pathToAudio)) {
+        if (!_mapping.TryGetValue(key.ToString(), out var pathToAudio)) {
             _logger.LogWarning("事件“{Key}”未在映射文件中配置，触发时将不会播放音频。", key);
             return null;
         }
@@ -82,8 +82,9 @@ public class JsonMappingResolve : ISoundMappingResolve {
             .ToArray();
 
         foreach (var catalog in catalogs) {
-            _logger.LogInformation("已注册事件目录: {SourceName} ({Count})", catalog.SourceName,
-                catalog.EventNames.Count);
+            if (_logger.IsEnabled(LogLevel.Information))
+                _logger.LogInformation("已注册事件目录: {CatalogType} ({Count})", catalog.GetType().Name,
+                    catalog.EventNames.Count);
         }
 
         if (missingKey.Length > 0) {
@@ -100,7 +101,8 @@ public class JsonMappingResolve : ISoundMappingResolve {
         }
 
         if (missingKey.Length == 0 && unknownInJson.Length == 0 && nullOrBlankMapping.Length == 0) {
-            _logger.LogInformation("事件映射检查通过，共 {Count} 个映射项。", _mapping.Count);
+            if (_logger.IsEnabled(LogLevel.Information))
+                _logger.LogInformation("事件映射检查通过，共 {Count} 个映射项。", _mapping.Count);
         }
     }
 }

@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 namespace HyprSound;
 
 public class Initialization(ILogger<Initialization> logger) {
-    public void InitJsonFile(string pathToLibrary, IEnumerable<string> eventNames) {
+    public void InitJsonFile(string pathToLibrary, IReadOnlyCollection<string> eventNames) {
         var jsonFile = Path.Combine(pathToLibrary, "sound-mapping.json");
 
         if (File.Exists(jsonFile)) {

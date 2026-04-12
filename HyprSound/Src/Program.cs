@@ -1,11 +1,10 @@
 ﻿using System.CommandLine;
+using HyprSound.Event;
 using HyprSound.Hyprland;
-using HyprSound.Hyprland.Event;
 using HyprSound.Interface;
 using HyprSound.MappingResolve;
 using HyprSound.Player;
 using HyprSound.Usb;
-using HyprSound.Usb.Event;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -100,24 +99,18 @@ internal class Program {
                     builder.AddConsole();
                     builder.SetMinimumLevel(logLevel);
                 })
-                .AddSingleton<IEventCatalog>(new HyprlandEvents())
-                .AddSingleton<IEventCatalog>(new UsbEvents())
+                .AddSingleton<IEventCatalog>(new EventCatalog())
                 .AddSingleton<Initialization>()
                 .BuildServiceProvider();
 
-            var catalogs = serviceProvider.GetService<IEventCatalog>();
-            if (catalogs is null) {
+            var catalog = serviceProvider.GetService<IEventCatalog>();
+            if (catalog is null) {
                 Console.WriteLine("错误: 事件列表为空,无法初始化配置文件.");
                 return;
             }
 
-            var eventNames = (new[] { catalogs })
-                .SelectMany(static catalog => catalog.EventNames)
-                .Where(static name => name is not ("" or " "))
-                .ToHashSet(StringComparer.Ordinal); // TODO 事件重名处理
-
             var initialization = serviceProvider.GetRequiredService<Initialization>();
-            initialization.InitJsonFile(libraryPath, eventNames);
+            initialization.InitJsonFile(libraryPath, catalog.EventNames);
         });
         rootCommand.Add(initCommand);
 
@@ -132,9 +125,8 @@ internal class Program {
                     builder.AddConsole();
                     builder.SetMinimumLevel(logLevel);
                 })
-                .AddSingleton<IEventCatalog>(new HyprlandEvents())
+                .AddSingleton<IEventCatalog>(new EventCatalog())
                 .AddSingleton<IEventResolve, HyprlandEventResolve>()
-                .AddSingleton<IEventCatalog>(new UsbEvents())
                 .AddSingleton<ISoundMappingResolve>(provider =>
                     new JsonMappingResolve(
                         assetPath,

@@ -1,3 +1,5 @@
+using HyprSound.Event;
+
 namespace HyprSound.Interface;
 
 public interface IMonitor : IDisposable {

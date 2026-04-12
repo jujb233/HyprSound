@@ -1,4 +1,4 @@
-using HyprSound.Hyprland.Event;
+using HyprSound.Event;
 using HyprSound.Interface;
 
 namespace HyprSound.Hyprland;
@@ -6,7 +6,6 @@ namespace HyprSound.Hyprland;
 public sealed class HyprlandEventResolve : IEventResolve {
     public bool TryParse(string input, out IEventType? eventType, out string? error) {
         eventType = null;
-        error = null;
 
         var index = input.IndexOf(">>", StringComparison.Ordinal);
         if (index == -1) {
@@ -15,14 +14,15 @@ public sealed class HyprlandEventResolve : IEventResolve {
         }
 
         var part = input[..index];
+        var template = new StandardEvent("Hyprland", default);
         eventType = part switch {
-            "closewindow" or "kill" => new CloseWindowEventType(),
-            "workspacev2" => new WorkspaceChangeEventType(),
-            "fullscreen" => new FullscreenEventType(),
-            "urgent" => new UrgentEventType(),
-            "bell" => new BellEventType(),
-            "configreloaded" => new ConfigReloadedEventType(),
-            "changefloatingmode" => new ChangeFloatingModeEventType(),
+            "closewindow" or "kill" => template with { EventName = EventKind.CloseWindow },
+            "workspacev2" => template with { EventName = EventKind.WorkspaceChange },
+            "fullscreen" => template with { EventName = EventKind.Fullscreen },
+            "urgent" => template with { EventName = EventKind.Urgent },
+            "bell" => template with { EventName = EventKind.Bell },
+            "configreloaded" => template with { EventName = EventKind.ConfigReloaded },
+            "changefloatingmode" => template with { EventName = EventKind.ChangeFloatingMode },
             _ => null
         };
 
@@ -31,7 +31,7 @@ public sealed class HyprlandEventResolve : IEventResolve {
             return false;
         }
 
+        error = null;
         return true;
     }
 }
-
